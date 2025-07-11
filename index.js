@@ -15,7 +15,8 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: "https://portal.aoryahospitals.lk",
+    origin: "http://192.168.8.103:5173",
+    // origin: "https://portal.aoryahospitals.lk",
   })
 );
 
