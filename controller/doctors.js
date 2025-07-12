@@ -53,10 +53,11 @@ export const loadFullProfileData = (req, res) => {
   `;
 
   const sessionsQuery = `
-    SELECT session.id, session.day, session.start_time, session.end_time,
+    SELECT session.id, day.day, session.start_time, session.end_time,
     session_type.name AS type, session.fee
     FROM session
     INNER JOIN session_type ON session.type_id = session_type.id
+    INNER JOIN day ON session.day_id = day.id
     WHERE session.doctor_id = ?
   `;
 
