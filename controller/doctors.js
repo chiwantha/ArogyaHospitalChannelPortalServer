@@ -19,8 +19,10 @@ export const loadSpecialization = (req, res) => {
 
 export const loadProfile = (req, res) => {
   const doctor_id = req.query.doctor_id;
-  const query = `SELECT doctors.id, doctors.name, specialization.specialization, doctors.description, doctors.image, doctors.hospital FROM doctors
-  INNER JOIN specialization ON doctors.specialization_id = specialization.id WHERE doctors.id = ?`;
+  const query = `SELECT doctors.id, doctors.name, specialization.specialization, doctors.description, doctors.image, hospital.name AS hospital FROM doctors
+  INNER JOIN specialization ON doctors.specialization_id = specialization.id
+  INNER JOIN hospital ON doctors.hospital_id = hospital.id
+  WHERE doctors.id = ?`;
   db.query(query, [doctor_id], (err, data) => {
     if (err) return res.status(500).json(err);
     if (data.length > 0) {
@@ -46,9 +48,10 @@ export const loadFullProfileData = (req, res) => {
   const doctor_id = req.query.doctor_id;
 
   const profileQuery = `
-    SELECT doctors.id, doctors.name, specialization.specialization, doctors.description, doctors.image, doctors.hospital
+    SELECT doctors.id, doctors.name, specialization.specialization, doctors.description, doctors.image, hospital.name AS hospital
     FROM doctors
     INNER JOIN specialization ON doctors.specialization_id = specialization.id
+    INNER JOIN hospital ON doctors.hospital_id = hospital.id
     WHERE doctors.id = ?
   `;
 
