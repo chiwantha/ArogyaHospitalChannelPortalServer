@@ -1,4 +1,5 @@
 import { db } from "../db.js";
+import { sendSms } from "../services/sms.js";
 
 export const makeAppointment = (req, res) => {
   const { session_id, patient, contact, alternate_contact, date, email, note } =
@@ -33,9 +34,13 @@ export const makeAppointment = (req, res) => {
     note === null ? "None" : note == "" ? "None" : note,
   ];
 
-  db.query(query, values, (err, data) => {
+  db.query(query, values, async (err, data) => {
     if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
+    if (data) {
+      const message = `New Appointment from ${patient} / ${contact} , Visit Admin : https://portal.arogyahospitals.lk/admin`;
+      await sendSms("0788806670", message);
+      return res.status(200).json(data);
+    }
   });
 };
 
