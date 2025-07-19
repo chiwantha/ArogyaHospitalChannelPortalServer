@@ -34,11 +34,14 @@ export const loadProfile = (req, res) => {
 };
 
 export const loadSessions = (req, res) => {
-  const doctor_id = req.query.doctor_id;
-  const query = `SELECT session.id, session.day, session.start_time, session.end_time,
-  session_type.name AS type , session.fee FROM session INNER JOIN session_type ON
-   session.type_id = session_type.id WHERE session.doctor_id = ?`;
-  db.query(query, [doctor_id], (err, data) => {
+  const session_id = req.query.session_id;
+  const query = `SELECT session.id, day.day, session.start_time, session.end_time,
+    session_type.name AS type, session.fee
+    FROM session
+    INNER JOIN session_type ON session.type_id = session_type.id
+    INNER JOIN day ON session.day_id = day.id
+    WHERE session.id = ?`;
+  db.query(query, [session_id], (err, data) => {
     if (err) return res.status(500).json(err);
     return res.status(200).json(data);
   });

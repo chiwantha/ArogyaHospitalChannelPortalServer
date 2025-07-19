@@ -1,5 +1,66 @@
 import { db } from "../db.js";
-import { sendSms } from "../services/sms.js";
+import { sendWhatsappMessage } from "../services/whatsapp.js";
+
+// export const makeAppointment = (req, res) => {
+//   const { session_id, patient, contact, alternate_contact, date, email, note } =
+//     req.body;
+
+//   if (
+//     session_id === null ||
+//     session_id === "" ||
+//     patient === null ||
+//     patient === "" ||
+//     contact === null ||
+//     contact === "" ||
+//     date === null ||
+//     date === ""
+//   ) {
+//     return res.status(404).json("Data Missing!");
+//   }
+
+//   const query = `INSERT INTO appointment (session_id, patient, contact, alternate_contact, date, email, note) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+//   const values = [
+//     session_id,
+//     patient,
+//     contact,
+//     alternate_contact === null
+//       ? "0"
+//       : alternate_contact == ""
+//       ? "0"
+//       : alternate_contact,
+//     date,
+//     email === null ? "None" : email == "" ? "None" : email,
+//     note === null ? "None" : note == "" ? "None" : note,
+//   ];
+
+//   db.query(query, values, async (err, data) => {
+//     if (err) return res.status(500).json(err);
+//     if (data) {
+//       const message = `
+//       =====================================
+//       New Appointment
+//       =====================================
+//       Patient : ${patient},
+//       Contact : ${contact},
+//       Alternate Contact : ${
+//         alternate_contact === null
+//           ? "0"
+//           : alternate_contact == ""
+//           ? "0"
+//           : alternate_contact
+//       },
+//       Date : ${date},
+//       Email : ${email === null ? "None" : email == "" ? "None" : email},
+//       Note : ${note === null ? "None" : note == "" ? "None" : note}
+//       =====================================
+//       add session data here
+//       `;
+//       await sendWhatsappMessage(message);
+//       return res.status(200).json(data);
+//     }
+//   });
+// };
 
 export const makeAppointment = (req, res) => {
   const { session_id, patient, contact, alternate_contact, date, email, note } =
@@ -18,28 +79,70 @@ export const makeAppointment = (req, res) => {
     return res.status(404).json("Data Missing!");
   }
 
+  // Normalize optional fields once so we don't repeat ternaries.
+  const altContact =
+    alternate_contact === null || alternate_contact === ""
+      ? "0"
+      : alternate_contact;
+  const safeEmail = email === null || email === "" ? "None" : email;
+  const safeNote = note === null || note === "" ? "None" : note;
+
   const query = `INSERT INTO appointment (session_id, patient, contact, alternate_contact, date, email, note) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
     session_id,
     patient,
     contact,
-    alternate_contact === null
-      ? "0"
-      : alternate_contact == ""
-      ? "0"
-      : alternate_contact,
+    altContact,
     date,
-    email === null ? "None" : email == "" ? "None" : email,
-    note === null ? "None" : note == "" ? "None" : note,
+    safeEmail,
+    safeNote,
   ];
 
   db.query(query, values, async (err, data) => {
     if (err) return res.status(500).json(err);
     if (data) {
-      const message = `New Appointment from ${patient} / ${contact} , Visit Admin : https://portal.arogyahospitals.lk/admin`;
-      await sendSms("0788806670", message);
-      return res.status(200).json(data);
+      const query = `SELECT session.id, day.day, session.start_time, session.end_time,
+        session_type.name AS type, session.fee
+        FROM session
+        INNER JOIN session_type ON session.type_id = session_type.id
+        INNER JOIN day ON session.day_id = day.id
+        WHERE session.id = ?`;
+
+      db.query(query, [session_id], async (err, sData) => {
+        if (err) return res.status(500).json(err);
+
+        const s = sData && sData.length ? sData[0] : {};
+
+        const message = `
+=====================================
+New Appointment
+=====================================
+Patient : ${patient}
+Contact : ${contact}
+Alternate Contact : ${altContact}
+Date : ${date}
+Email : ${safeEmail}
+Note : ${safeNote}
+-------------------------------------
+Session Info
+-------------------------------------
+Session ID : ${s.id ?? session_id}
+Day : ${s.day ?? "N/A"}
+Time : ${s.start_time ?? "N/A"} - ${s.end_time ?? "N/A"}
+Type : ${s.type ?? "N/A"}
+Fee : ${s.fee ?? "N/A"}
+=====================================`.trim();
+
+        try {
+          await sendWhatsappMessage(message);
+        } catch (werr) {
+          console.error("WhatsApp send error:", werr);
+          // Decide if you want to notify caller; currently we ignore and still return 200.
+        }
+
+        return res.status(200).json(sData);
+      });
     }
   });
 };
