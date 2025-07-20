@@ -1,11 +1,11 @@
 import axios from "axios";
 
-export const sendWhatsappMessage = async (message) => {
+export const sendWhatsappMessage = async (to, message) => {
   try {
     const res = await axios.post(
       `https://wa.kchord.com/send`,
       {
-        to: "94788806670",
+        to: `94${to}`,
         message: message,
       },
       {
