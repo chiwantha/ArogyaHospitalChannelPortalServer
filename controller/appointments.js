@@ -227,7 +227,7 @@ export const loadAndSendAppointment = (appointment_id) => {
     ];
 
     const message = lines.join("\n");
-    // sendWhatsappMessage("764604184", message);
-    sendWhatsappMessage("761294262", message);
+    sendWhatsappMessage("764604184", message);
+    // sendWhatsappMessage("761294262", message);
   });
 };
