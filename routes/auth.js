@@ -1,5 +1,5 @@
 import express from "express";
-import { getPasswd, userAuthentication } from "../controller/auth.js";
+import { getPasswd, userAuthentication } from "../controller/authcontrol.js";
 
 const routes = express.Router();
 
