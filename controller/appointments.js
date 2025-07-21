@@ -124,7 +124,7 @@ export const loadAdminAppointmentList = (req, res) => {
 };
 
 export const updateAppointment = (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const appointment_id = req.body.id;
   const action = req.body.action;
 
@@ -227,6 +227,7 @@ export const loadAndSendAppointment = (appointment_id) => {
     ];
 
     const message = lines.join("\n");
-    sendWhatsappMessage("764604184", message);
+    // sendWhatsappMessage("764604184", message);
+    sendWhatsappMessage("761294262", message);
   });
 };
