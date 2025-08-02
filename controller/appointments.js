@@ -62,7 +62,9 @@ export const makeAppointment = (req, res) => {
 };
 
 export const loadMyAppointments = (req, res) => {
-  const my_number = req.query.contact;
+  const my_number = req.body.contact;
+  const hospital_id = req.body.hospital_id;
+
   const query = `
     SELECT 
       appointment.id, 
@@ -84,20 +86,22 @@ export const loadMyAppointments = (req, res) => {
     INNER JOIN session ON appointment.session_id = session.id 
     INNER JOIN doctors ON session.doctor_id = doctors.id 
     INNER JOIN session_type ON session.type_id = session_type.id 
-    WHERE appointment.contact LIKE ? 
-    OR appointment.alternate_contact LIKE ? AND appointment.state = 1;
+    WHERE ( appointment.contact LIKE ? 
+    OR appointment.alternate_contact LIKE ? )
+    AND appointment.state = 1 AND appointment.hospital_id = ?;
   `;
 
   // Add wildcards to the search terms
   const searchTerm = `%${my_number}%`;
 
-  db.query(query, [searchTerm, searchTerm], (err, data) => {
+  db.query(query, [searchTerm, searchTerm, hospital_id], (err, data) => {
     if (err) return res.status(500).json(err);
     return res.status(200).json(data);
   });
 };
 
 export const loadAdminAppointmentList = (req, res) => {
+  const hospital_id = req.body.hospital_id;
   const query = `
     SELECT 
       appointment.id, 
@@ -120,7 +124,7 @@ export const loadAdminAppointmentList = (req, res) => {
     INNER JOIN session ON appointment.session_id = session.id 
     INNER JOIN doctors ON session.doctor_id = doctors.id 
     INNER JOIN session_type ON session.type_id = session_type.id 
-    WHERE appointment.state = 1
+    WHERE appointment.state = 1 AND appointment.hospital_id = ?
     ORDER BY 
       CASE 
         WHEN appointment.is_printed = 0 THEN 0
@@ -131,7 +135,7 @@ export const loadAdminAppointmentList = (req, res) => {
     LIMIT 120;
   `;
 
-  db.query(query, (err, data) => {
+  db.query(query, [hospital_id], (err, data) => {
     if (err) return res.status(500).json(err);
     return res.status(200).json(data);
   });

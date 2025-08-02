@@ -9,8 +9,8 @@ import {
 const routes = express.Router();
 
 routes.post("/new", makeAppointment);
-routes.get("/reach", loadMyAppointments);
-routes.get("/reachAdmin", loadAdminAppointmentList);
+routes.post("/reach", loadMyAppointments);
+routes.post("/reachAdmin", loadAdminAppointmentList);
 routes.put("/update", updateAppointment);
 
 export default routes;

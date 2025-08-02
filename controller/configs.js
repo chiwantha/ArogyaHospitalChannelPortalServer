@@ -1,7 +1,7 @@
 import { db } from "../db.js";
 
 export const loadAppData = (req, res) => {
-  const hostname = req.body.host_name;
+  const hostname = req.headers.host.split(`:`)[0];
 
   const query = `SELECT color_palette.* , hospital.* FROM hospital
   INNER JOIN color_palette ON color_palette.id = hospital.color_palette_id
