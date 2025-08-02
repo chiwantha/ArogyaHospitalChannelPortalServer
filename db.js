@@ -5,7 +5,7 @@ export const db = mysql2.createPool({
   host: "194.233.65.197",
   user: "kchord",
   password: "Kchordgroup*789789", // change before production!
-  database: "arogya_channeling",
+  database: "channeling",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
