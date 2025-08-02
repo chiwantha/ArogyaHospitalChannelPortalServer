@@ -2,10 +2,23 @@ import { db } from "../db.js";
 import { sendWhatsappMessage } from "../services/whatsapp.js";
 
 export const makeAppointment = (req, res) => {
-  const { session_id, patient, contact, alternate_contact, date, email, note } =
-    req.body;
+  const {
+    session_id,
+    patient,
+    contact,
+    alternate_contact,
+    date,
+    email,
+    note,
+    whatsapp_send,
+    hospital_id,
+  } = req.body;
 
   if (
+    whatsapp_send === null ||
+    whatsapp_send === "" ||
+    hospital_id === null ||
+    hospital_id === "" ||
     session_id === null ||
     session_id === "" ||
     patient === null ||
@@ -26,9 +39,10 @@ export const makeAppointment = (req, res) => {
   const safeEmail = email === null || email === "" ? "None" : email;
   const safeNote = note === null || note === "" ? "None" : note;
 
-  const query = `INSERT INTO appointment (session_id, patient, contact, alternate_contact, date, email, note) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  const query = `INSERT INTO appointment (hospital_id, session_id, patient, contact, alternate_contact, date, email, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
+    hospital_id,
     session_id,
     patient,
     contact,
@@ -41,7 +55,7 @@ export const makeAppointment = (req, res) => {
   db.query(query, values, async (err, data) => {
     if (err) return res.status(500).json(err);
     if (data) {
-      loadAndSendAppointment(data.insertId);
+      loadAndSendAppointment(data.insertId, whatsapp_send);
       return res.status(200).json(data);
     }
   });
@@ -157,7 +171,7 @@ export const updateAppointment = (req, res) => {
   });
 };
 
-export const loadAndSendAppointment = (appointment_id) => {
+export const loadAndSendAppointment = (appointment_id, to) => {
   const query = `
     SELECT 
       appointment.id, 
@@ -227,7 +241,7 @@ export const loadAndSendAppointment = (appointment_id) => {
     ];
 
     const message = lines.join("\n");
-    sendWhatsappMessage("764604184", message);
+    sendWhatsappMessage(to, message);
     // sendWhatsappMessage("761294262", message);
   });
 };
